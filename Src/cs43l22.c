@@ -99,6 +99,7 @@ static HAL_StatusTypeDef CODEC_IO_Write(cs43l22_HandlerTypeDef *hcs43, uint8_t R
 HAL_StatusTypeDef cs43l22_Init(cs43l22_HandlerTypeDef *hcs43, uint16_t OutputDevice, uint8_t Volume, uint32_t AudioFreq)
 {
   uint8_t err = 0;
+  HAL_StatusTypeDef status;
   
   /*Save Output device for mute ON/OFF procedure*/
   switch (OutputDevice)
@@ -125,7 +126,7 @@ HAL_StatusTypeDef cs43l22_Init(cs43l22_HandlerTypeDef *hcs43, uint16_t OutputDev
   }
   
   /* Initialize the Control interface of the Audio Codec */
-  AUDIO_IO_Init(hcs43);
+  if ((status = AUDIO_IO_Init(hcs43)) != HAL_OK) return status;
 
   /* Keep Codec powered OFF */
   err += CODEC_IO_Write(hcs43, CS43L22_REG_POWER_CTL1, 0x01);
@@ -203,7 +204,7 @@ uint8_t cs43l22_ReadID(cs43l22_HandlerTypeDef *hcs43)
   return((uint32_t) Value);
 }
 
-HAL_StatusTypeDef cs43l22_SendSound(cs43l22_HandlerTypeDef *hcs43, uint16_t* pBuffer, uint16_t Size)
+HAL_StatusTypeDef cs43l22_StreamSound(cs43l22_HandlerTypeDef *hcs43, uint16_t* pBuffer, uint16_t Size)
 {
   uint8_t counter = 0;
   counter += HAL_I2S_Transmit_DMA(hcs43->hi2s, pBuffer, Size);
@@ -349,11 +350,11 @@ HAL_StatusTypeDef cs43l22_SetVolume(cs43l22_HandlerTypeDef *hcs43, uint8_t Volum
   */
 HAL_StatusTypeDef cs43l22_SetFrequency(cs43l22_HandlerTypeDef *hcs43, uint32_t AudioFreq)
 {
-  if (hcs43->isPlaying) cs43l22_Stop(hcs43, CODEC_STANDARD);
+  if (hcs43->isPlaying) cs43l22_Stop(hcs43, CODEC_PDWN_HW);
 
-  // TODO: Set Frequency
+  hcs43->audioFrequency = AudioFreq;
 
-  return HAL_OK;
+  return AUDIO_IO_SetFrequency(hcs43, AudioFreq);
 }
 
 /**
@@ -433,35 +434,37 @@ HAL_StatusTypeDef cs43l22_SetOutputMode(cs43l22_HandlerTypeDef *hcs43, uint8_t O
   */
 HAL_StatusTypeDef cs43l22_Reset(cs43l22_HandlerTypeDef *hcs43)
 {
+  AUDIO_IO_DeInit(hcs43);
+  AUDIO_IO_Init(hcs43);
   return HAL_OK;
 }
 
 
-HAL_StatusTypeDef AUDIO_IO_Init(cs43l22_HandlerTypeDef *hcs43)
+__weak HAL_StatusTypeDef AUDIO_IO_Init(cs43l22_HandlerTypeDef *hcs43)
 {
   return HAL_OK;
 }
 
 
-HAL_StatusTypeDef AUDIO_IO_DeInit(cs43l22_HandlerTypeDef *hcs43)
+__weak HAL_StatusTypeDef AUDIO_IO_DeInit(cs43l22_HandlerTypeDef *hcs43)
 {
   return HAL_OK;
 }
 
 
-HAL_StatusTypeDef AUDIO_IO_Check(cs43l22_HandlerTypeDef *hcs43)
+__weak HAL_StatusTypeDef AUDIO_IO_Check(cs43l22_HandlerTypeDef *hcs43)
 {
   return HAL_I2C_IsDeviceReady(hcs43->hi2c, hcs43->deviceAddr, 10, 1000);
 }
 
 
-HAL_StatusTypeDef AUDIO_IO_Write(cs43l22_HandlerTypeDef *hcs43, uint8_t Reg, uint8_t Value)
+__weak HAL_StatusTypeDef AUDIO_IO_Write(cs43l22_HandlerTypeDef *hcs43, uint8_t Reg, uint8_t Value)
 {
   return HAL_I2C_Mem_Write(hcs43->hi2c, hcs43->deviceAddr, (uint16_t)Reg, I2C_MEMADD_SIZE_8BIT, &Value, 1, I2Cx_TIMEOUT_MAX);
 }
 
 
-uint8_t AUDIO_IO_Read(cs43l22_HandlerTypeDef *hcs43, uint8_t Reg)
+__weak uint8_t AUDIO_IO_Read(cs43l22_HandlerTypeDef *hcs43, uint8_t Reg)
 {
   uint8_t value = 0;
 
@@ -469,6 +472,11 @@ uint8_t AUDIO_IO_Read(cs43l22_HandlerTypeDef *hcs43, uint8_t Reg)
   return value;
 }
 
+
+__weak HAL_StatusTypeDef AUDIO_IO_SetFrequency(cs43l22_HandlerTypeDef *hcs43, uint32_t AudioFreq)
+{
+
+}
 
 /**
   * @brief  Writes/Read a single data.

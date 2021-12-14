@@ -174,6 +174,7 @@ typedef struct {
   uint8_t isPlaying;
   uint8_t volume;
   uint8_t outputDevice;
+  uint32_t audioFrequency;
 } cs43l22_HandlerTypeDef;
 
 /*------------------------------------------------------------------------------
@@ -183,7 +184,7 @@ typedef struct {
 HAL_StatusTypeDef cs43l22_Init(cs43l22_HandlerTypeDef*, uint16_t OutputDevice, uint8_t Volume, uint32_t AudioFreq);
 HAL_StatusTypeDef cs43l22_DeInit(cs43l22_HandlerTypeDef*);
 uint8_t           cs43l22_ReadID(cs43l22_HandlerTypeDef*);
-HAL_StatusTypeDef cs43l22_SendSound(cs43l22_HandlerTypeDef*, uint16_t* pBuffer, uint16_t Size);
+HAL_StatusTypeDef cs43l22_StreamSound(cs43l22_HandlerTypeDef*, uint16_t* pBuffer, uint16_t Size);
 HAL_StatusTypeDef cs43l22_Play(cs43l22_HandlerTypeDef*);
 HAL_StatusTypeDef cs43l22_Pause(cs43l22_HandlerTypeDef*);
 HAL_StatusTypeDef cs43l22_Resume(cs43l22_HandlerTypeDef*);
@@ -200,6 +201,7 @@ HAL_StatusTypeDef AUDIO_IO_DeInit(cs43l22_HandlerTypeDef*);
 HAL_StatusTypeDef AUDIO_IO_Check(cs43l22_HandlerTypeDef*);
 HAL_StatusTypeDef AUDIO_IO_Write(cs43l22_HandlerTypeDef*, uint8_t Reg, uint8_t Value);
 uint8_t           AUDIO_IO_Read(cs43l22_HandlerTypeDef*, uint8_t Reg);
+HAL_StatusTypeDef AUDIO_IO_SetFrequency(cs43l22_HandlerTypeDef*, uint32_t AudioFreq);
 
 /* Audio driver structure */
 
