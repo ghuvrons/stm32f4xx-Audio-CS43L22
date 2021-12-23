@@ -18,7 +18,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "Include/cs43l22.h"
+#include "cs43l22.h"
 
 /** @addtogroup BSP
   * @{
@@ -475,7 +475,7 @@ __weak uint8_t AUDIO_IO_Read(cs43l22_HandlerTypeDef *hcs43, uint8_t Reg)
 
 __weak HAL_StatusTypeDef AUDIO_IO_SetFrequency(cs43l22_HandlerTypeDef *hcs43, uint32_t AudioFreq)
 {
-
+  return HAL_OK;
 }
 
 /**
